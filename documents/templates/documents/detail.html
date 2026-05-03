@@ -1,0 +1,133 @@
+{% extends "documents/base.html" %}
+{% load document_tags %}
+
+{% block title %}{{ doc.document_name|default:"Documento" }} - LicitAI{% endblock %}
+
+{% block content %}
+<a href="{% url 'upload_document' %}" class="btn btn-back" style="margin-bottom:1rem;">← Voltar</a>
+
+<div class="card">
+    <h2>Metadados Extraídos</h2>
+    <div class="meta-grid">
+        <div class="meta-item">
+            <div class="label">Nome do Documento</div>
+            <div class="value">{{ doc.document_name|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Nº Documento</div>
+            <div class="value">{{ doc.document_number|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Tipo de Documento</div>
+            <div class="value">{{ doc.document_type|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Data do Documento</div>
+            <div class="value">{{ doc.document_date|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Cidade Origem</div>
+            <div class="value">{{ doc.city|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Órgão Solicitante</div>
+            <div class="value">{{ doc.requesting_agency|default:"—" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Status</div>
+            <div class="value">
+                <span class="status-tag status-{{ doc.status }}">{{ doc.get_status_display }}</span>
+            </div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Documento Original</div>
+            <div class="value">
+                {% if doc.file %}
+                <a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a>
+                {% else %}—{% endif %}
+            </div>
+        </div>
+        <div class="meta-item">
+            <div class="label">Modelo IA (Extração)</div>
+            <div class="value"><code>{{ doc.extraction_model|default:"—" }}</code></div>
+        </div>
+        <div class="meta-item full-width">
+            <div class="label">Objetos Identificados</div>
+            <div class="value">{{ doc.identified_objects|default:"—"|linebreaksbr }}</div>
+        </div>
+    </div>
+
+    {% if doc.requirements %}
+    <div style="margin-top:1.2rem;">
+        <div style="font-size:0.75rem; text-transform:uppercase; color:#888; font-weight:600; margin-bottom:0.3rem;">Requisitos Técnicos Extraídos</div>
+        <div style="font-size:0.85rem; background:#fff8f0; padding:1rem; border-radius:6px; border-left:3px solid #ff9800;">
+            {{ doc.requirements|linebreaksbr }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if doc.processing_error %}
+    <div style="margin-top:1rem; padding:0.8rem; background:#ffebee; border-radius:6px; font-size:0.85rem; color:#c62828;">
+        <strong>Erro no processamento:</strong> {{ doc.processing_error }}
+    </div>
+    {% endif %}
+</div>
+
+{% if analysis %}
+<div class="card">
+    <h2>Análise de Risco de Direcionamento</h2>
+
+    {% if analysis.analysis_error %}
+    <div style="padding:0.8rem; background:#fff3e0; border-radius:6px; font-size:0.85rem; color:#e65100; margin-bottom:1rem;">
+        <strong>Aviso:</strong> {{ analysis.analysis_error }}
+    </div>
+    {% endif %}
+
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+        <span class="risk-badge risk-{{ analysis.risk_classification }}">
+            {{ analysis.get_risk_classification_display }}
+        </span>
+        <span style="font-size:1.5rem; font-weight:700;">{{ analysis.risk_score }}<small style="font-size:0.8rem; color:#888;">/100</small></span>
+    </div>
+
+    <div class="score-bar">
+        <div class="score-fill risk-{{ analysis.risk_classification }}" style="width: {{ analysis.risk_score }}%;"></div>
+    </div>
+
+    {% if analysis.justification %}
+    <div style="margin-top:1.2rem;">
+        <div style="font-size:0.75rem; text-transform:uppercase; color:#888; font-weight:600; margin-bottom:0.3rem;">Justificativa</div>
+        <p style="font-size:0.9rem; background:#f8f9fa; padding:1rem; border-radius:6px;">{{ analysis.justification|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    {% if analysis.warning_signs_list %}
+    <div style="margin-top:1.2rem;">
+        <div style="font-size:0.75rem; text-transform:uppercase; color:#888; font-weight:600; margin-bottom:0.3rem;">Sinais de Alerta</div>
+        <ul class="warning-list">
+            {% for sign in analysis.warning_signs_list %}
+            <li>⚠ {{ sign }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if analysis.context_used %}
+    <details style="margin-top:1.2rem;">
+        <summary style="font-size:0.75rem; text-transform:uppercase; color:#888; font-weight:600; cursor:pointer;">
+            Contexto Pesquisado na Web (RAG) — clique para expandir
+        </summary>
+        <div style="font-size:0.85rem; background:#f0f7ff; padding:1rem; border-radius:6px; border-left:3px solid #4fc3f7; margin-top:0.5rem; color:#333; max-height:400px; overflow-y:auto;">
+            {{ analysis.context_used|linebreaksbr }}
+        </div>
+    </details>
+    {% endif %}
+
+    <p style="margin-top:1.5rem; font-size:0.8rem; color:#999; font-style:italic;">
+        Esta análise é um apoio à avaliação humana. Não constitui afirmação de fraude.
+        Análise realizada em {{ analysis.analyzed_at|date:"d/m/Y H:i" }}
+        {% if analysis.analysis_model %}| Modelo: <code style="color:#666;">{{ analysis.analysis_model }}</code>{% endif %}.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

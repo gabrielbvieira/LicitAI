@@ -1,0 +1,93 @@
+{% extends "documents/base.html" %}
+
+{% block title %}Upload - LicitAI{% endblock %}
+
+{% block content %}
+<!-- Loading overlay -->
+<div id="loading-overlay" style="display:none; position:fixed; inset:0; background:rgba(26,26,46,0.85); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:14px; padding:2.5rem 3rem; text-align:center; max-width:420px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+        <div id="spinner" style="width:50px; height:50px; border:4px solid #e0e0e0; border-top:4px solid #4fc3f7; border-radius:50%; margin:0 auto 1.5rem; animation:spin 1s linear infinite;"></div>
+        <h3 style="margin:0 0 0.5rem; font-size:1.1rem; color:#1a1a2e;">Processando documento...</h3>
+        <p id="loading-step" style="color:#666; font-size:0.9rem; margin:0 0 1rem;">Enviando arquivo...</p>
+        <div style="background:#e0e0e0; border-radius:6px; height:6px; overflow:hidden;">
+            <div id="loading-bar" style="width:5%; height:100%; background:linear-gradient(90deg,#4fc3f7,#1a1a2e); border-radius:6px; transition:width 1.5s ease;"></div>
+        </div>
+        <p style="color:#999; font-size:0.75rem; margin-top:1rem;">Isso pode levar de 30s a 2min dependendo do modelo e do documento.</p>
+    </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="card">
+    <h2>Enviar Documento para Análise</h2>
+    <p style="color:#666; font-size:0.9rem; margin-bottom:1rem;">
+        Envie um edital de licitação (PDF, TXT ou DOCX). O sistema extrairá os metadados e realizará a análise de risco automaticamente.
+    </p>
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+        {{ form.file }}
+        {% if form.file.errors %}
+        <p style="color:#c62828; font-size:0.85rem;">{{ form.file.errors.0 }}</p>
+        {% endif %}
+        <br>
+        <button type="submit" class="btn btn-primary" id="btn-submit">Enviar e Analisar</button>
+    </form>
+</div>
+
+{% if recent_docs %}
+<div class="card">
+    <h2>Documentos Recentes</h2>
+    <ul class="doc-list">
+        {% for d in recent_docs %}
+        <li>
+            <a href="{% url 'document_detail' pk=d.pk %}">
+                <strong>{{ d.document_name|default:d.filename }}</strong>
+                <span class="status-tag status-{{ d.status }}">{{ d.get_status_display }}</span>
+            </a>
+            <br><small style="color:#999;">{{ d.uploaded_at|date:"d/m/Y H:i" }}{% if d.extraction_model %} · {{ d.extraction_model }}{% endif %}</small>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    var fileInput = document.querySelector('input[type="file"]');
+    if (!fileInput.value) {
+        e.preventDefault();
+        return;
+    }
+
+    document.getElementById('btn-submit').disabled = true;
+    var overlay = document.getElementById('loading-overlay');
+    overlay.style.display = 'flex';
+
+    var steps = [
+        { text: 'Enviando arquivo...', pct: '8%', delay: 0 },
+        { text: 'Salvando documento no banco de dados...', pct: '12%', delay: 2000 },
+        { text: 'Extraindo texto do documento...', pct: '18%', delay: 4000 },
+        { text: 'Chamando IA para extração de metadados...', pct: '28%', delay: 7000 },
+        { text: 'Aguardando resposta do modelo de IA...', pct: '38%', delay: 15000 },
+        { text: 'Metadados extraídos. Pesquisando contexto na web...', pct: '48%', delay: 30000 },
+        { text: 'Analisando resultados da pesquisa...', pct: '58%', delay: 45000 },
+        { text: 'Iniciando análise de risco com contexto...', pct: '68%', delay: 60000 },
+        { text: 'Aguardando análise de risco da IA...', pct: '78%', delay: 80000 },
+        { text: 'Processando resposta da análise...', pct: '88%', delay: 100000 },
+        { text: 'Quase lá, finalizando...', pct: '94%', delay: 130000 },
+    ];
+
+    var stepEl = document.getElementById('loading-step');
+    var barEl = document.getElementById('loading-bar');
+
+    steps.forEach(function(step) {
+        setTimeout(function() {
+            stepEl.textContent = step.text;
+            barEl.style.width = step.pct;
+        }, step.delay);
+    });
+});
+</script>
+{% endblock %}

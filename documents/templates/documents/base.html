@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LicitAI{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.6; }
+        .navbar { background: #1a1a2e; color: #fff; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; }
+        .navbar h1 { font-size: 1.3rem; font-weight: 600; }
+        .navbar h1 span { color: #4fc3f7; }
+        .navbar a { color: #ccc; text-decoration: none; font-size: 0.9rem; }
+        .navbar a:hover { color: #fff; }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: #fff; border-radius: 10px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #1a1a2e; border-bottom: 2px solid #4fc3f7; padding-bottom: 0.5rem; }
+        .btn { display: inline-block; padding: 0.7rem 1.8rem; border: none; border-radius: 6px; font-size: 0.95rem; cursor: pointer; text-decoration: none; font-weight: 500; }
+        .btn-primary { background: #1a1a2e; color: #fff; }
+        .btn-primary:hover { background: #2d2d5e; }
+        .btn-back { background: #e0e0e0; color: #333; font-size: 0.85rem; padding: 0.5rem 1.2rem; }
+        input[type="file"] { padding: 0.5rem; border: 2px dashed #ccc; border-radius: 8px; width: 100%; margin: 1rem 0; background: #fafafa; }
+        .messages { list-style: none; margin-bottom: 1rem; }
+        .messages li { padding: 0.8rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .messages .success { background: #e8f5e9; color: #2e7d32; }
+        .messages .warning { background: #fff3e0; color: #e65100; }
+        .messages .error { background: #ffebee; color: #c62828; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .meta-item { padding: 0.8rem; background: #f8f9fa; border-radius: 6px; }
+        .meta-item .label { font-size: 0.75rem; text-transform: uppercase; color: #888; font-weight: 600; letter-spacing: 0.5px; }
+        .meta-item .value { font-size: 0.95rem; margin-top: 0.2rem; word-break: break-word; }
+        .risk-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; color: #fff; }
+        .risk-baixo { background: #43a047; }
+        .risk-medio { background: #fb8c00; }
+        .risk-alto { background: #e53935; }
+        .score-bar { height: 10px; background: #e0e0e0; border-radius: 5px; margin: 0.5rem 0; overflow: hidden; }
+        .score-fill { height: 100%; border-radius: 5px; transition: width 0.5s; }
+        .warning-list { list-style: none; }
+        .warning-list li { padding: 0.5rem 0.8rem; margin: 0.3rem 0; background: #fff8e1; border-left: 3px solid #ffa000; border-radius: 0 4px 4px 0; font-size: 0.9rem; }
+        .doc-list { list-style: none; }
+        .doc-list li { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
+        .doc-list li:last-child { border: none; }
+        .doc-list a { color: #1a1a2e; text-decoration: none; }
+        .doc-list a:hover { color: #4fc3f7; }
+        .status-tag { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 10px; }
+        .status-processado { background: #e8f5e9; color: #2e7d32; }
+        .status-pendente { background: #e3f2fd; color: #1565c0; }
+        .status-erro { background: #ffebee; color: #c62828; }
+        .full-width { grid-column: 1 / -1; }
+        @media (max-width: 600px) { .meta-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1><span>Licit</span>AI</h1>
+        <a href="{% url 'upload_document' %}">Upload</a>
+        <a href="/admin/">Admin</a>
+    </nav>
+    <div class="container">
+        {% if messages %}
+        <ul class="messages">
+            {% for msg in messages %}
+            <li class="{{ msg.tags }}">{{ msg }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
